@@ -1,6 +1,9 @@
+import os
+
 mysql_credentials = {
-    'host': 'localhost',
-    'user': 'appuser',
-    'password' : 'app123',
-    'database' : 'car_damage_detection'
+    'host': os.environ.get('MYSQL_HOST', 'localhost'),
+    'user': os.environ.get('MYSQL_USER', 'appuser'),
+    'password': os.environ.get('MYSQL_PASSWORD', 'app123'),
+    'database': os.environ.get('MYSQL_DATABASE', 'car_damage_detection'),
+    'port': int(os.environ.get('MYSQL_PORT', 3306))
 }

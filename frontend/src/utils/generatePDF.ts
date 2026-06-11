@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { BASE_URL } from '../api';
 
 interface PartEstimate {
   count: number;
@@ -18,7 +19,7 @@ interface PDFReportData {
   detectedAt?: string;
 }
 
-const API_BASE = 'http://localhost:5000';
+// Uses dynamic BASE_URL imported from API config
 
 /** Loads an image URL and returns a base64 data-URL (bypasses CORS via canvas) */
 async function loadImageAsBase64(url: string): Promise<string | null> {
@@ -35,7 +36,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
       resolve(canvas.toDataURL('image/jpeg', 0.85));
     };
     img.onerror = () => resolve(null);
-    img.src = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    img.src = url.startsWith('http') ? url : `${BASE_URL}${url}`;
   });
 }
 

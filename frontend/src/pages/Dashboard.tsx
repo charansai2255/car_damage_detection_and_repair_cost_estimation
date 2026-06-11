@@ -29,8 +29,6 @@ export const Dashboard: React.FC = () => {
   const [recentUploads, setRecentUploads] = useState<UploadRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
-  const API_BASE = 'http://localhost:5000';
-
   const fetchRecentUploads = useCallback(async () => {
     setLoadingHistory(true);
     try {
@@ -400,7 +398,7 @@ export const Dashboard: React.FC = () => {
                     background: 'rgba(0,0,0,0.3)',
                   }}>
                     <img
-                      src={`${API_BASE}${upload.detectedImage}`}
+                      src={getApiUrl(upload.detectedImage)}
                       alt="Detected"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />

@@ -17,8 +17,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "vehicle_damage_detection_secret"
 
-# Enable CORS for React frontend running on port 5173
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+# Enable CORS for React frontend running on port 5173 and optional FRONTEND_URL environment variable
+frontend_url = os.environ.get('FRONTEND_URL')
+cors_origins = ["http://localhost:5173"]
+if frontend_url:
+    cors_origins.append(frontend_url.rstrip('/'))
+CORS(app, supports_credentials=True, origins=cors_origins)
 
 serializer = URLSafeTimedSerializer(app.secret_key)
 
@@ -31,6 +35,90 @@ def connect_to_db():
     except connector.Error as e:
         print(f"Error connecting to database: {e}")
         return None
+
+def init_db():
+    import json
+    connection = connect_to_db()
+    if not connection:
+        print("Database not reachable. Auto-initialization skipped.")
+        return
+    try:
+        cursor = connection.cursor()
+        
+        # Create user_info table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_info (
+                user_id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                password VARCHAR(100) NOT NULL,
+                email VARCHAR(100) NOT NULL,
+                vehicle_id VARCHAR(50) NOT NULL UNIQUE,
+                contact_number VARCHAR(10) NOT NULL,
+                address VARCHAR(100) NOT NULL,
+                car_brand VARCHAR(100) NOT NULL,
+                model VARCHAR(100) NOT NULL,
+                registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Create car_models table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS car_models (
+                brand VARCHAR(50) NOT NULL,
+                model VARCHAR(50) NOT NULL,
+                part VARCHAR(50) NOT NULL,
+                price INT NOT NULL
+            )
+        """)
+        
+        # Create detections table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS detections (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(100) NOT NULL,
+                uploaded_image VARCHAR(255) NOT NULL,
+                detected_image VARCHAR(255) NOT NULL,
+                parts_summary TEXT NOT NULL,
+                total_cost INT NOT NULL DEFAULT 0,
+                detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_email (email)
+            )
+        """)
+        
+        connection.commit()
+        
+        # Seed database if car_models is empty
+        cursor.execute("SELECT COUNT(*) FROM car_models")
+        count = cursor.fetchone()[0]
+        if count == 0:
+            print("Table 'car_models' is empty. Seeding car parts pricing data...")
+            prices_path = os.path.join(os.path.dirname(__file__), 'car_parts_prices.json')
+            if os.path.exists(prices_path):
+                with open(prices_path, 'r') as f:
+                    car_parts = json.load(f)
+                    
+                for brand, models in car_parts.items():
+                    for model, parts in models.items():
+                        for part, price in parts.items():
+                            cursor.execute(
+                                "INSERT INTO car_models (brand, model, part, price) VALUES (%s, %s, %s, %s)",
+                                (brand, model, part, price)
+                            )
+                connection.commit()
+                print("Database seeding completed successfully.")
+            else:
+                print(f"Warning: Seed file not found at {prices_path}")
+        else:
+            print(f"Table 'car_models' already has {count} records. Skipping seeding.")
+            
+        cursor.close()
+    except Exception as e:
+        print(f"Database initialization failed: {e}")
+    finally:
+        connection.close()
+
+# Auto-initialize database on application startup
+init_db()
 
 # Token validation decorator
 def token_required(f):
