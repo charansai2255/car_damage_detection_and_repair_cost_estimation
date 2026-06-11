@@ -22,7 +22,4 @@ services:
         sync: false
       - key: MYSQL_PORT
         value: 3306
-    disk:
-      name: uploads-storage
-      mountPath: /opt/render/project/src/backend/static/uploads
-      sizeGB: 1
+
