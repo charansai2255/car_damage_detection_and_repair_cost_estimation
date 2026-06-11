@@ -4,7 +4,7 @@ services:
     plan: free
     runtime: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: gunicorn --chdir backend app:app
+    startCommand: gunicorn --chdir backend --bind 0.0.0.0:5000 app:app
     envVars:
       - key: PORT
         value: 5000

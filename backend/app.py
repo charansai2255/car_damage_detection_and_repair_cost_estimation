@@ -64,6 +64,7 @@ def init_db():
         # Create car_models table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS car_models (
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 brand VARCHAR(50) NOT NULL,
                 model VARCHAR(50) NOT NULL,
                 part VARCHAR(50) NOT NULL,
