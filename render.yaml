@@ -1,6 +1,7 @@
 services:
   - type: web
     name: accident-damage-backend
+    plan: free
     runtime: python
     buildCommand: pip install -r backend/requirements.txt
     startCommand: gunicorn --chdir backend app:app
